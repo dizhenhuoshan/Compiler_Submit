@@ -42,8 +42,10 @@ public class GlobalPreUseScanner extends ScopeScanner
     {
         ClassEntity arrayEntity = new ClassEntity("__array", new ClassType("__array"), globalScope);
         Scope arrayScope = arrayEntity.getClassScope();
+        globalScope.insertClass(arrayEntity);
         ClassEntity stringEntity = new ClassEntity("string", new ClassType("string"), globalScope);
         Scope stringScope = stringEntity.getClassScope();
+        globalScope.insertClass(stringEntity);
         addBuildInFunc(arrayScope, "size", null, intType);
         addBuildInFunc(stringScope, "length", null, intType);
         addBuildInFunc(stringScope, "substring",

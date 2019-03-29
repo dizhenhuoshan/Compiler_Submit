@@ -83,8 +83,8 @@ public class ScopeBuilder extends ScopeScanner
             if (varDeclNode.getInitValue() != null)
                 varInitCheck(varDeclNode);
         }
-        currentScope = currentScope.getFather();
         funcDeclNode.getFuncBlock().accept(this);
+        currentScope = currentScope.getFather();
     }
 
     @Override
@@ -153,8 +153,11 @@ public class ScopeBuilder extends ScopeScanner
             Type retType = returnStateNode.getRetExpr().getType();
             if (retType instanceof VoidType || retType == null)
                 throw new MxError(returnStateNode.getLocation(), "shouldn't return void !\n");
-            if (retType instanceof NullType && !(currentReturnType instanceof ClassType || currentReturnType instanceof ArrayType))
-                throw new MxError(returnStateNode.getLocation(), "shouldn't return null !\n");
+            if (retType instanceof NullType)
+            {
+                if (!(currentReturnType instanceof ClassType || currentReturnType instanceof ArrayType))
+                    throw new MxError(returnStateNode.getLocation(), "shouldn't return null !\n");
+            }
             else if (!retType.equals(currentReturnType))
                 throw new MxError(returnStateNode.getLocation(), "return type ERROR !\n");
         }
@@ -260,35 +263,37 @@ public class ScopeBuilder extends ScopeScanner
         functionCallExprNode.getFuncExpr().accept(this);
         if (!(functionCallExprNode.getFuncExpr().getType() instanceof FuncType))
             throw new MxError(functionCallExprNode.getLocation(), "Function expression invalid!\n");
-        functionCallExprNode.setFuncEntity(currentFuncCallEntity);
+        FuncEntity funcEntity = currentFuncCallEntity;
+        functionCallExprNode.setFuncEntity(funcEntity);
         // Args type check
         // Caution: last para in class function is "this"
         int paraNum;
         Type requiredType;
-        if (currentFuncCallEntity.isInClass())
-            paraNum = currentFuncCallEntity.getFuncParas().size() - 1;
-        else
-            paraNum = currentFuncCallEntity.getFuncParas().size();
-        if (paraNum != functionCallExprNode.getParaList().size())
-            throw new MxError(functionCallExprNode.getLocation(), "Function call paraments number error!\n");
-        for (int i = 0; i < paraNum; i++)
+        if (funcEntity.getFuncParas() != null)
         {
-            requiredType = currentFuncCallEntity.getFuncParas().get(i).getType();
-            functionCallExprNode.getParaList().get(i).accept(this);
-            if (functionCallExprNode.getParaList().get(i).getType() instanceof VoidType)
-                throw new MxError(functionCallExprNode.getLocation(), "Function para cannot be void type!\n");
-            if (functionCallExprNode.getParaList().get(i).getType() instanceof NullType)
+            if (funcEntity.isInClass())
+                paraNum = funcEntity.getFuncParas().size() - 1;
+            else
+                paraNum = funcEntity.getFuncParas().size();
+            if (paraNum != functionCallExprNode.getParaList().size())
+                throw new MxError(functionCallExprNode.getLocation(), "Function call paraments number error!\n");
+            for (int i = 0; i < paraNum; i++)
             {
-                if (!(requiredType instanceof ClassType || requiredType instanceof ArrayType))
-                    throw new MxError(functionCallExprNode.getLocation(), String.format("para %d cannot be null!\n",
-                            i));
+                requiredType = funcEntity.getFuncParas().get(i).getType();
+                functionCallExprNode.getParaList().get(i).accept(this);
+                if (functionCallExprNode.getParaList().get(i).getType() instanceof VoidType)
+                    throw new MxError(functionCallExprNode.getLocation(), "Function para cannot be void type!\n");
+                if (functionCallExprNode.getParaList().get(i).getType() instanceof NullType)
+                {
+                    if (!(requiredType instanceof ClassType || requiredType instanceof ArrayType))
+                        throw new MxError(functionCallExprNode.getLocation(), String.format("para %d cannot be null!\n", i));
+                }
+                else if (!functionCallExprNode.getParaList().get(i).getType().equals(requiredType))
+                    throw new MxError(functionCallExprNode.getLocation(), String.format("para %d type not meet the reauired!\n", i));
             }
-            else if (!functionCallExprNode.getParaList().get(i).getType().equals(requiredType))
-                throw new MxError(functionCallExprNode.getLocation(), String.format("para %d type not meet the " +
-                        "reauired!\n", i));
         }
         functionCallExprNode.setLeftValue(false);
-        functionCallExprNode.setType(currentFuncCallEntity.getRetType());
+        functionCallExprNode.setType(funcEntity.getRetType());
     }
 
     @Override
@@ -381,9 +386,7 @@ public class ScopeBuilder extends ScopeScanner
         binaryExprNode.getRhs().accept(this);
         Type LType = binaryExprNode.getLhs().getType();
         Type RType = binaryExprNode.getRhs().getType();
-        if (!LType.equals(RType))
-            throw new MxError(binaryExprNode.getLocation(), "Binary expression shuold have same type!\n");
-        if (LType instanceof VoidType)
+        if (LType instanceof VoidType || RType instanceof VoidType)
             throw new MxError(binaryExprNode.getLocation(), "Binary op cannot use on void!\n");
         Operators.BinaryOp bop = binaryExprNode.getBop();
         binaryExprNode.setLeftValue(false);
@@ -391,7 +394,7 @@ public class ScopeBuilder extends ScopeScanner
         {
 
             case ADD:
-                if (LType instanceof StringType)
+                if (LType instanceof StringType && RType instanceof StringType)
                 {
                     binaryExprNode.setType(stringType);
                     break;
@@ -405,7 +408,7 @@ public class ScopeBuilder extends ScopeScanner
             case BITWISE_AND:
             case BITWISE_OR:
             case BITWISE_XOR:
-                if (!(LType instanceof IntType))
+                if (!(LType instanceof IntType || RType instanceof IntType))
                     throw new MxError(binaryExprNode.getLocation(), String.format("bop %s can only connect " +
                             "intenger!\n", bop.toString()));
                 binaryExprNode.setType(intType);
@@ -414,6 +417,8 @@ public class ScopeBuilder extends ScopeScanner
             case LESS_EQUAL:
             case GREATER:
             case LESS:
+                if (!LType.equals(RType))
+                    throw new MxError(binaryExprNode.getLocation(), "Binary expression shuold have same type!\n");
                 if (!(LType instanceof StringType || LType instanceof IntType))
                     throw new MxError(binaryExprNode.getLocation(),
                             String.format("bop %s can only connect intenger " + "or string!\n", bop.toString()));
@@ -421,10 +426,17 @@ public class ScopeBuilder extends ScopeScanner
                 break;
             case EQUAL:
             case NEQUAL:
+                if (!(LType.equals(RType)))
+                {
+                    if (RType instanceof NullType && !(LType instanceof ArrayType || LType instanceof ClassType))
+                        throw new MxError(binaryExprNode.getLocation(),"null can only assign to class or array!\n");
+                }
                 binaryExprNode.setType(boolType);
                 break;
             case LOGIC_AND:
             case LOGIC_OR:
+                if (!LType.equals(RType))
+                    throw new MxError(binaryExprNode.getLocation(), "Binary expression shuold have same type!\n");
                 if (!(LType instanceof BoolType))
                     throw new MxError(binaryExprNode.getLocation(), String.format("bop %s can only connect bool !\n",
                             bop.toString()));
@@ -489,6 +501,7 @@ public class ScopeBuilder extends ScopeScanner
         if (funcEntity != null)
         {
             entity = funcEntity;
+            currentFuncCallEntity = funcEntity; // function call will use this.
             identExprNode.setLeftValue(false);
         }
         else if (varEntity != null)
