@@ -47,13 +47,16 @@ public class GlobalPreUseScanner extends ScopeScanner
         Scope stringScope = stringEntity.getClassScope();
         globalScope.insertClass(stringEntity);
         addBuildInFunc(arrayScope, "size", null, intType);
-        addBuildInFunc(stringScope, "length", null, intType);
+        addBuildInFunc(stringScope, "length",
+                new ArrayList<VarEntity>(){{add(new VarEntity("this", stringEntity.getType()));}}, intType);
         addBuildInFunc(stringScope, "substring",
                 new ArrayList<VarEntity>(){{add(new VarEntity("left", intType));
-                add(new VarEntity("right", intType));}}, stringType);
-        addBuildInFunc(stringScope, "paserInt", null, intType);
+                add(new VarEntity("right", intType));add(new VarEntity("this", stringEntity.getType()));}}, stringType);
+        addBuildInFunc(stringScope, "parseInt",
+                new ArrayList<VarEntity>(){{add(new VarEntity("this", stringEntity.getType()));}}, intType);
         addBuildInFunc(stringScope, "ord",
-                new ArrayList<VarEntity>(){{add(new VarEntity("pos", intType));}}, intType);
+                new ArrayList<VarEntity>(){{add(new VarEntity("pos", intType));
+                add(new VarEntity("this", stringEntity.getType()));}}, intType);
         addBuildInFunc(globalScope, "print",
                 new ArrayList<VarEntity>(){{add(new VarEntity("str", stringType));}}, voidType);
         addBuildInFunc(globalScope, "println",

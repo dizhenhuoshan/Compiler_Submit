@@ -90,6 +90,12 @@ public class ScopeBuilder extends ScopeScanner
     @Override
     public void visit(VarDeclNode varDeclNode)
     {
+        if (varDeclNode.getVarType().getType() instanceof ClassType)
+        {
+            if (currentScope.getClass(((ClassType)(varDeclNode.getVarType().getType())).getClassIdent()) == null)
+                throw new MxError(varDeclNode.getLocation(), String.format("Scope: class %s is not defined\n",
+                        ((ClassType)varDeclNode.getVarType().getType()).getClassIdent()));
+        }
         if (varDeclNode.getInitValue() != null)
             varInitCheck(varDeclNode);
         VarEntity entity = new VarEntity(varDeclNode);
@@ -228,8 +234,9 @@ public class ScopeBuilder extends ScopeScanner
     {
         memoryAccessExprNode.getHostExpr().accept(this);
         String hostID;
-        VarEntity varEntity;
-        FuncEntity funcEntity;
+//        VarEntity varEntity;
+//        FuncEntity funcEntity;
+        Entity entity;
         ClassEntity classEntity;
         if (memoryAccessExprNode.getHostExpr().getType() instanceof ArrayType)
             hostID = "__array";
@@ -242,14 +249,15 @@ public class ScopeBuilder extends ScopeScanner
         classEntity = currentScope.getClass(hostID);
         if (classEntity == null)
             throw new MxError(memoryAccessExprNode.getLocation(), "hostExpr class is not defined! (PACNIC)! \n");
-        varEntity = (VarEntity) classEntity.getClassScope().getSelfVar(memoryAccessExprNode.getMemberStr());
-        funcEntity = (FuncEntity) classEntity.getClassScope().getSelfFunc(memoryAccessExprNode.getMemberStr());
-        if (varEntity != null)
-            memoryAccessExprNode.setType(varEntity.getType());
-        else if (funcEntity != null)
+//        varEntity = (VarEntity) classEntity.getClassScope().getSelfVar(memoryAccessExprNode.getMemberStr());
+//        funcEntity = (FuncEntity) classEntity.getClassScope().getSelfFunc(memoryAccessExprNode.getMemberStr());
+        entity = classEntity.getClassScope().getSelfVarOrFunc(memoryAccessExprNode.getMemberStr());
+        if (entity instanceof VarEntity)
+            memoryAccessExprNode.setType(entity.getType());
+        else if (entity instanceof FuncEntity)
         {
-            currentFuncCallEntity = funcEntity;
-            memoryAccessExprNode.setType(funcEntity.getType());
+            currentFuncCallEntity = (FuncEntity)entity;
+            memoryAccessExprNode.setType(entity.getType());
         }
         else
             throw new MxError(memoryAccessExprNode.getLocation(), String.format("%s is not defined in this class!",
@@ -450,6 +458,8 @@ public class ScopeBuilder extends ScopeScanner
     {
         assignExprNode.getLhs().accept(this);
         assignExprNode.getRhs().accept(this);
+        if (!assignExprNode.getLhs().isLeftValue())
+            throw new MxError(assignExprNode.getLocation(), "Assign left expression is not left value!\n");
         if (assignExprNode.getLhs().getType() instanceof VoidType)
             throw new MxError(assignExprNode.getLocation(), "Assign type cannot be void!\n");
         if (assignExprNode.getRhs().getType() instanceof NullType)
@@ -495,18 +505,16 @@ public class ScopeBuilder extends ScopeScanner
     public void visit(IdentExprNode identExprNode)
     {
         String ident = identExprNode.getIdentName();
-        FuncEntity funcEntity = currentScope.getFunc(ident);
-        VarEntity varEntity = currentScope.getVar(ident);
-        Entity entity;
-        if (funcEntity != null)
+//        FuncEntity funcEntity = currentScope.getFunc(ident);
+//        VarEntity varEntity = currentScope.getVar(ident);
+        Entity entity = currentScope.getVarOrFunc(ident);
+        if (entity instanceof FuncEntity)
         {
-            entity = funcEntity;
-            currentFuncCallEntity = funcEntity; // function call will use this.
+            currentFuncCallEntity = (FuncEntity) entity; // function call will use this.
             identExprNode.setLeftValue(false);
         }
-        else if (varEntity != null)
+        else if (entity instanceof VarEntity)
         {
-            entity = varEntity;
             identExprNode.setLeftValue(true);
         }
         else
