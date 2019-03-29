@@ -2,9 +2,11 @@ package princeYang.mxcc;
 
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import princeYang.mxcc.ast.MxProgNode;
 import princeYang.mxcc.errors.MxError;
@@ -30,6 +32,7 @@ public class MxCC
             MxLexer mxLexer = new MxLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(mxLexer);
             MxParser mxParser = new MxParser(tokens);
+            mxParser.setErrorHandler(new BailErrorStrategy());
             ParseTree progTree = mxParser.mxprogram();
             AstBuilder astBuilder = new AstBuilder();
             MxProgNode ast = (MxProgNode) astBuilder.visit(progTree);
@@ -43,7 +46,7 @@ public class MxCC
         }
         catch (Throwable th)
         {
-            System.out.print(th.toString());
+            System.err.println(th.toString());
             System.exit(-1);
         }
     }
