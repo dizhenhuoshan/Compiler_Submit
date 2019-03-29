@@ -5,25 +5,18 @@ import java.util.List;
 
 public class FuncBlockNode extends StateNode
 {
-    List<StateNode> funcStateList;
-    List<VarDeclNode> varDeclList;
+    List<Node> stateList;
     Scope scope;
 
-    public FuncBlockNode(Location location, List<StateNode> funcStateList, List<VarDeclNode> varDeclList)
+    public FuncBlockNode(Location location, List<Node> stateList)
     {
         this.location = location;
-        this.funcStateList = funcStateList;
-        this.varDeclList = varDeclList;
+        this.stateList = stateList;
     }
 
-    public List<VarDeclNode> getVarDeclList()
+    public List<Node> getStateList()
     {
-        return varDeclList;
-    }
-
-    public List<StateNode> getFuncStateList()
-    {
-        return funcStateList;
+        return stateList;
     }
 
     public Scope getScope()

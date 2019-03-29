@@ -67,7 +67,7 @@ public class InsideClassPreUseScanner extends ScopeScanner
                 throw new MxError(varDeclNode.getLocation(), String.format("Scope: class %s is not defined\n",
                         ((ClassType)varDeclNode.getVarType().getType()).getClassIdent()));
         }
-        Entity entity = new VarEntity(((ClassType)varDeclNode.getVarType().getType()).getClassIdent() ,varDeclNode);
+        Entity entity = new VarEntity(classType.getClassIdent() ,varDeclNode);
         currentScope.insertVar(entity);
     }
 }

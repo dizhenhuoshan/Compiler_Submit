@@ -90,10 +90,6 @@ public class ScopeBuilder extends ScopeScanner
     @Override
     public void visit(VarDeclNode varDeclNode)
     {
-        if (varDeclNode.getVarType().getType() instanceof ClassType)
-        {
-            System.err.print("Scope building: var in class is visiting!");
-        }
         if (varDeclNode.getInitValue() != null)
             varInitCheck(varDeclNode);
         VarEntity entity = new VarEntity(varDeclNode);
@@ -124,16 +120,7 @@ public class ScopeBuilder extends ScopeScanner
             forStateNode.getStopExpr().accept(this);
         if (forStateNode.getLoopState() != null)
         {
-            if (forStateNode.getLoopState() instanceof FuncBlockNode)
-            {
-                Scope blockScope = new Scope(currentScope);
-                ((FuncBlockNode) forStateNode.getLoopState()).setScope(blockScope);
-                currentScope = blockScope;
-                forStateNode.getLoopState().accept(this);
-                currentScope = currentScope.getFather();
-            }
-            else
-                forStateNode.getLoopState().accept(this);
+            forStateNode.getLoopState().accept(this);
         }
         else
             throw new MxError(forStateNode.getLocation(), "for LoopStatement is empty\n");
@@ -150,16 +137,7 @@ public class ScopeBuilder extends ScopeScanner
             throw new MxError(whileStateNode.getLocation(), "condition expr is null!\n");
         if (whileStateNode.getLoopState() != null)
         {
-            if (whileStateNode.getLoopState() instanceof FuncBlockNode)
-            {
-                Scope blockScope = new Scope(currentScope);
-                ((FuncBlockNode) whileStateNode.getLoopState()).setScope(blockScope);
-                currentScope = blockScope;
-                whileStateNode.getLoopState().accept(this);
-                currentScope = currentScope.getFather();
-            }
-            else
-                whileStateNode.getLoopState().accept(this);
+            whileStateNode.getLoopState().accept(this);
         }
         else
             throw new MxError(whileStateNode.getLocation(), "while LoopStatement is empty!\n");
@@ -230,6 +208,16 @@ public class ScopeBuilder extends ScopeScanner
             else
                 ifStateNode.getElseState().accept(this);
         }
+    }
+
+    @Override
+    public void visit(FuncBlockNode funcBlockNode)
+    {
+        Scope blockScope = new Scope(currentScope);
+        currentScope = blockScope;
+        for (Node funcState : funcBlockNode.getStateList())
+            funcState.accept(this);
+        currentScope = currentScope.getFather();
     }
 
     @Override

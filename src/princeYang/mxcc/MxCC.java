@@ -44,6 +44,7 @@ public class MxCC
         catch (Throwable th)
         {
             System.out.print(th.toString());
+            System.exit(-1);
         }
     }
 }

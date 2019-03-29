@@ -160,8 +160,7 @@ public class AstBuilder extends MxBaseVisitor<Node>
     public Node visitFunctionBlock(MxParser.FunctionBlockContext ctx)
     {
         Location location = new Location(ctx);
-        List<StateNode> funcStates = new ArrayList<StateNode>();
-        List<VarDeclNode> varDeclas = new ArrayList<VarDeclNode>();
+        List<Node> stateList = new ArrayList<Node>();
         Node funcState;
 
         if (ctx.functionStatement() != null)
@@ -171,13 +170,11 @@ public class AstBuilder extends MxBaseVisitor<Node>
                 funcState = visit(state);
                 if (funcState != null)
                 {
-                    if (funcState instanceof VarDeclNode)
-                        varDeclas.add((VarDeclNode) funcState);
-                    else funcStates.add((StateNode) funcState);
+                    stateList.add(funcState);
                 }
             }
         }
-        return new FuncBlockNode(location, funcStates, varDeclas);
+        return new FuncBlockNode(location, stateList);
     }
 
     @Override
