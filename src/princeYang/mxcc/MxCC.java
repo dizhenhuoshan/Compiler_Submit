@@ -65,7 +65,7 @@ public class MxCC
             graphAllocator.allocateReg();
             NASMFormProcessor nasmFormProcessor = new NASMFormProcessor(irRoot);
             nasmFormProcessor.processNASM();
-            PrintStream nasmPrint = new PrintStream("test.asm");
+//            PrintStream nasmPrint = new PrintStream("test.asm");
 //            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
             NASMPrinter nasmPrinter = new NASMPrinter(System.out);
             nasmPrinter.visit(irRoot);

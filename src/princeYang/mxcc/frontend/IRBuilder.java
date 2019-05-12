@@ -836,6 +836,9 @@ public class IRBuilder extends ScopeScanner
             case IRROOT.buildInToString:
                 destVReg = new VirtualReg("toStringRes");
                 calleeFunc = irRoot.getBuildInFuncMap().get(targetFuncName);
+                para0 = callExprNode.getParaList().get(0);
+                para0.accept(this);
+                paras.add(para0.getRegValue());
                 currentBlock.appendInst(new FuncCall(currentBlock, calleeFunc, destVReg, paras));
                 callExprNode.setRegValue(destVReg);
                 break;
