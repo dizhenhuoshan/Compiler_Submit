@@ -1,8 +1,8 @@
 package princeYang.mxcc.ast;
 
-public class NullConstNode extends ConstNode
+public class ConstNullNode extends ConstNode
 {
-    public NullConstNode(Location location)
+    public ConstNullNode(Location location)
     {
         this.location = location;
     }

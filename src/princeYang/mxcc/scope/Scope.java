@@ -1,6 +1,5 @@
 package princeYang.mxcc.scope;
 
-import princeYang.mxcc.ast.StringType;
 import princeYang.mxcc.errors.MxError;
 
 import java.util.HashMap;
@@ -9,7 +8,7 @@ public class Scope
 {
     private HashMap<String, Entity> entityMap = new HashMap<>();
     private Scope father;
-    private boolean isTop;
+    private boolean isGlobalScope;
     static private String varPrefix = "__var__";
     static private String funcPrefix = "__func__";
     static private String classPrefix = "__class__";
@@ -17,13 +16,13 @@ public class Scope
     public Scope()
     {
         father = null;
-        isTop = true;
+        isGlobalScope = true;
     }
 
     public Scope(Scope father)
     {
         this.father = father;
-        isTop = false;
+        isGlobalScope = false;
     }
 
     public void insertVar(Entity entity)
@@ -60,7 +59,7 @@ public class Scope
     {
         String key = varPrefix + ident;
         VarEntity entity = (VarEntity) entityMap.get(key);
-        if (entity != null || isTop)
+        if (entity != null || isGlobalScope)
             return entity;
         else return father.getVar(ident);
     }
@@ -69,7 +68,7 @@ public class Scope
     {
         String key = funcPrefix + ident;
         FuncEntity entity = (FuncEntity) entityMap.get(key);
-        if (entity != null || isTop)
+        if (entity != null || isGlobalScope)
             return entity;
         else return father.getFunc(ident);
     }
@@ -78,7 +77,7 @@ public class Scope
     {
         String key = classPrefix + ident;
         ClassEntity entity = (ClassEntity) entityMap.get(key);
-        if (entity != null || isTop)
+        if (entity != null || isGlobalScope)
             return entity;
         else return father.getClass(ident);
     }
@@ -90,7 +89,7 @@ public class Scope
         funcKey = funcPrefix + ident;
         Entity varEntity = entityMap.get(varKey);
         Entity funcEntity = entityMap.get(funcKey);
-        if (varEntity == null && funcEntity == null && !isTop)
+        if (varEntity == null && funcEntity == null && !isGlobalScope)
             return father.getVarOrFunc(ident);
         else if (varEntity != null)
             return varEntity;
@@ -106,19 +105,19 @@ public class Scope
     }
 
 
-    public Entity getSelfVar(String ident)
+    public VarEntity getSelfVar(String ident)
     {
-        return entityMap.get(varPrefix + ident);
+        return (VarEntity) entityMap.get(varPrefix + ident);
     }
 
-    public Entity getSelfFunc(String ident)
+    public FuncEntity getSelfFunc(String ident)
     {
-        return entityMap.get(funcPrefix + ident);
+        return (FuncEntity) entityMap.get(funcPrefix + ident);
     }
 
-    public Entity getSelfClass(String ident)
+    public ClassEntity getSelfClass(String ident)
     {
-        return entityMap.get(classPrefix + ident);
+        return (ClassEntity) entityMap.get(classPrefix + ident);
     }
 
     public Entity getSelfVarOrFunc(String ident)
@@ -138,8 +137,8 @@ public class Scope
         return father;
     }
 
-    public boolean isTop()
+    public boolean isGlobalScope()
     {
-        return isTop;
+        return isGlobalScope;
     }
 }

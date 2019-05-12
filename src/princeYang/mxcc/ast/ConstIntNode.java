@@ -1,17 +1,17 @@
 package princeYang.mxcc.ast;
 
-public class StringConstNode extends ConstNode
+public class ConstIntNode extends ConstNode
 {
-    String value;
+    private int value;
 
-    public StringConstNode(Location location, String value)
+    public ConstIntNode(Location location, int value)
     {
         this.location = location;
-        this.constType = new StringType();
+        this.constType = new IntType();
         this.value = value;
     }
 
-    public String getValue()
+    public int getValue()
     {
         return value;
     }

@@ -99,7 +99,7 @@ public class ScopeBuilder extends ScopeScanner
         if (varDeclNode.getInitValue() != null)
             varInitCheck(varDeclNode);
         VarEntity entity = new VarEntity(varDeclNode);
-        if (currentScope.isTop())
+        if (currentScope.isGlobalScope())
             entity.setInGlobal(true);
         currentScope.insertVar(entity);
     }
@@ -123,13 +123,11 @@ public class ScopeBuilder extends ScopeScanner
                 throw new MxError(forStateNode.getLocation(), "stop condition type should be bool!\n");
         }
         if (forStateNode.getStepExpr() != null)
-            forStateNode.getStopExpr().accept(this);
+            forStateNode.getStepExpr().accept(this);
         if (forStateNode.getLoopState() != null)
         {
             forStateNode.getLoopState().accept(this);
         }
-        else
-            throw new MxError(forStateNode.getLocation(), "for LoopStatement is empty\n");
         loopLevel--;
     }
 
@@ -223,6 +221,7 @@ public class ScopeBuilder extends ScopeScanner
     public void visit(FuncBlockNode funcBlockNode)
     {
         Scope blockScope = new Scope(currentScope);
+        funcBlockNode.setScope(blockScope);
         currentScope = blockScope;
         for (Node funcState : funcBlockNode.getStateList())
             funcState.accept(this);
@@ -234,8 +233,6 @@ public class ScopeBuilder extends ScopeScanner
     {
         memoryAccessExprNode.getHostExpr().accept(this);
         String hostID;
-//        VarEntity varEntity;
-//        FuncEntity funcEntity;
         Entity entity;
         ClassEntity classEntity;
         if (memoryAccessExprNode.getHostExpr().getType() instanceof ArrayType)
@@ -249,8 +246,6 @@ public class ScopeBuilder extends ScopeScanner
         classEntity = currentScope.getClass(hostID);
         if (classEntity == null)
             throw new MxError(memoryAccessExprNode.getLocation(), "hostExpr class is not defined! (PACNIC)! \n");
-//        varEntity = (VarEntity) classEntity.getClassScope().getSelfVar(memoryAccessExprNode.getMemberStr());
-//        funcEntity = (FuncEntity) classEntity.getClassScope().getSelfFunc(memoryAccessExprNode.getMemberStr());
         entity = classEntity.getClassScope().getSelfVarOrFunc(memoryAccessExprNode.getMemberStr());
         if (entity instanceof VarEntity)
             memoryAccessExprNode.setType(entity.getType());
@@ -273,8 +268,6 @@ public class ScopeBuilder extends ScopeScanner
             throw new MxError(functionCallExprNode.getLocation(), "Function expression invalid!\n");
         FuncEntity funcEntity = currentFuncCallEntity;
         functionCallExprNode.setFuncEntity(funcEntity);
-        // Args type check
-        // Caution: last para in class function is "this"
         int paraNum;
         Type requiredType;
         if (funcEntity.getFuncParas() != null)
@@ -474,39 +467,37 @@ public class ScopeBuilder extends ScopeScanner
     }
 
     @Override
-    public void visit(IntConstNode intConstNode)
+    public void visit(ConstIntNode constIntNode)
     {
-        intConstNode.setLeftValue(false);
-        intConstNode.setType(intType);
+        constIntNode.setLeftValue(false);
+        constIntNode.setType(intType);
     }
 
     @Override
-    public void visit(BoolConstNode boolConstNode)
+    public void visit(ConstBoolNode constBoolNode)
     {
-        boolConstNode.setLeftValue(false);
-        boolConstNode.setType(boolType);
+        constBoolNode.setLeftValue(false);
+        constBoolNode.setType(boolType);
     }
 
     @Override
-    public void visit(StringConstNode stringConstNode)
+    public void visit(ConstStringNode constStringNode)
     {
-        stringConstNode.setLeftValue(false);
-        stringConstNode.setType(stringType);
+        constStringNode.setLeftValue(false);
+        constStringNode.setType(stringType);
     }
 
     @Override
-    public void visit(NullConstNode nullConstNode)
+    public void visit(ConstNullNode constNullNode)
     {
-        nullConstNode.setLeftValue(false);
-        nullConstNode.setType(nullType);
+        constNullNode.setLeftValue(false);
+        constNullNode.setType(nullType);
     }
 
     @Override
     public void visit(IdentExprNode identExprNode)
     {
         String ident = identExprNode.getIdentName();
-//        FuncEntity funcEntity = currentScope.getFunc(ident);
-//        VarEntity varEntity = currentScope.getVar(ident);
         Entity entity = currentScope.getVarOrFunc(ident);
         if (entity instanceof FuncEntity)
         {
@@ -515,6 +506,7 @@ public class ScopeBuilder extends ScopeScanner
         }
         else if (entity instanceof VarEntity)
         {
+            identExprNode.setVarEntity((VarEntity) entity);
             identExprNode.setLeftValue(true);
         }
         else

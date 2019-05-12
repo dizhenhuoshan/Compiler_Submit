@@ -1,17 +1,17 @@
 package princeYang.mxcc.ast;
 
-public class BoolConstNode extends ConstNode
+public class ConstStringNode extends ConstNode
 {
-    boolean value;
+    private String value;
 
-    public BoolConstNode(Location location, boolean value)
+    public ConstStringNode(Location location, String value)
     {
         this.location = location;
-        this.constType = new BoolType();
+        this.constType = new StringType();
         this.value = value;
     }
 
-    public boolean getValue()
+    public String getValue()
     {
         return value;
     }

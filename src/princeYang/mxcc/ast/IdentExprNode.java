@@ -1,8 +1,12 @@
 package princeYang.mxcc.ast;
 
+import princeYang.mxcc.scope.VarEntity;
+
 public class IdentExprNode extends ExprNode
 {
-    String identName;
+    private String identName;
+    private VarEntity varEntity;
+    private boolean memAccessChecked, memAccessing;
 
     public IdentExprNode(Location location, String identName)
     {
@@ -14,6 +18,36 @@ public class IdentExprNode extends ExprNode
     public String getIdentName()
     {
         return identName;
+    }
+
+    public VarEntity getVarEntity()
+    {
+        return varEntity;
+    }
+
+    public void setVarEntity(VarEntity varEntity)
+    {
+        this.varEntity = varEntity;
+    }
+
+    public boolean hasMemAccessChecked()
+    {
+        return memAccessChecked;
+    }
+
+    public void setMemAccessChecked(boolean memAccessChecked)
+    {
+        this.memAccessChecked = memAccessChecked;
+    }
+
+    public boolean isMemAccessing()
+    {
+        return memAccessing;
+    }
+
+    public void setMemAccessing(boolean memAccessing)
+    {
+        this.memAccessing = memAccessing;
     }
 
     @Override
