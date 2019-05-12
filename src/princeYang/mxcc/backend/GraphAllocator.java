@@ -6,6 +6,8 @@ import princeYang.mxcc.ir.*;
 
 import java.util.*;
 
+import static java.lang.Math.min;
+
 public class GraphAllocator
 {
     private IRROOT irRoot;

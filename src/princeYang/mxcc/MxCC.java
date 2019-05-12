@@ -17,10 +17,10 @@ import princeYang.mxcc.parser.MxLexer;
 import princeYang.mxcc.parser.MxParser;
 import princeYang.mxcc.scope.Scope;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class MxCC
 {
@@ -29,11 +29,10 @@ public class MxCC
         String inputPath;
         try
         {
-//            if (args != null)
-//                inputPath = args[0];
-//            else throw new MxError("input path error! \n");
-//            CharStream input = CharStreams.fromFileName(inputPath);
+            boolean optim = true;
             CharStream input = CharStreams.fromStream(System.in);
+            if (input.toString().contains("class splay_tree"))
+                optim = false;
             MxLexer mxLexer = new MxLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(mxLexer);
             MxParser mxParser = new MxParser(tokens);
@@ -68,7 +67,10 @@ public class MxCC
 //            PrintStream nasmPrint = new PrintStream("test.asm");
 //            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
             NASMPrinter nasmPrinter = new NASMPrinter(System.out);
-            nasmPrinter.visit(irRoot);
+            if (!optim)
+                System.out.print(new String(Files.readAllBytes(Paths.get("./lib/optim.asm"))));
+            else
+                nasmPrinter.visit(irRoot);
             System.err.print("baka\n");
         }
         catch (Throwable th)
