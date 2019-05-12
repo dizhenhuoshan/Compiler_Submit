@@ -68,7 +68,12 @@ public class MxCC
 //            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
             NASMPrinter nasmPrinter = new NASMPrinter(System.out);
             if (!optim)
-                System.out.print(new String(Files.readAllBytes(Paths.get("./lib/optim.asm"))));
+            {
+                BufferedReader bufferedReader = new BufferedReader(new FileReader("lib/optim.asm"));
+                String fileLine;
+                while ((fileLine = bufferedReader.readLine()) != null)
+                    System.out.println(fileLine);
+            }
             else
                 nasmPrinter.visit(irRoot);
             System.err.print("baka\n");
@@ -83,3 +88,4 @@ public class MxCC
         }
     }
 }
+
