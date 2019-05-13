@@ -88,6 +88,11 @@ public class BasicBlock
         return forStateNode;
     }
 
+    public IRFunction getParentFunction()
+    {
+        return parentFunction;
+    }
+
     public void setForStateNode(ForStateNode forStateNode)
     {
         this.forStateNode = forStateNode;

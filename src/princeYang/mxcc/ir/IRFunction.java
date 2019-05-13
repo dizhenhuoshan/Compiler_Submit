@@ -12,7 +12,7 @@ public class IRFunction
     private LinkedList<BasicBlock> basicBlocks = new LinkedList<BasicBlock>();
     private BasicBlock blockEnter;
     private BasicBlock blockLeave;
-    private boolean hasRetValue = false, hasRecursive = false, isInClass = false;
+    private boolean hasRetValue = false, hasRecursiveCall = false, isInClass = false;
     private String buildInName;
     private boolean isBuildIn = false;
     private FuncEntity funcEntity;
@@ -124,6 +124,31 @@ public class IRFunction
         this.blockLeave = blockLeave;
     }
 
+    public void setParavRegList(List<VirtualReg> paravRegList)
+    {
+        this.paravRegList = paravRegList;
+    }
+
+    public void setRecursive(boolean hasRecursive)
+    {
+        this.hasRecursiveCall = hasRecursive;
+    }
+
+    public boolean isRecursive()
+    {
+        return hasRecursiveCall;
+    }
+
+    public void setInClass(boolean inClass)
+    {
+        isInClass = inClass;
+    }
+
+    public boolean isInClass()
+    {
+        return isInClass;
+    }
+
     public List<VirtualReg> getParavRegList()
     {
         return paravRegList;
@@ -154,7 +179,7 @@ public class IRFunction
         reversePostOrder.add(basicBlock);
     }
 
-    private void postOrderProcessor()
+    public void postOrderProcessor()
     {
         dfsVisitedBlock = new HashSet<BasicBlock>();
         reversePostOrder = new ArrayList<BasicBlock>();
