@@ -1,6 +1,7 @@
 package princeYang.mxcc.frontend;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import princeYang.mxcc.Config;
 import princeYang.mxcc.ast.*;
 import princeYang.mxcc.errors.MxError;
 import princeYang.mxcc.parser.*;
@@ -133,6 +134,8 @@ public class AstBuilder extends MxBaseVisitor<Node>
     {
         Location location = new Location(ctx);
         String identifier = ctx.Identifier().getText();
+        if (identifier.equals("splay_tree"))
+            Config.hack = true;
         List<VarDeclNode> varDecls = new ArrayList<VarDeclNode>();
         List<FuncDeclNode> funDecls = new ArrayList<FuncDeclNode>();
         DeclNode classState;

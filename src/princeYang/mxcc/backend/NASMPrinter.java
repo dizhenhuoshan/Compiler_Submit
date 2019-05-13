@@ -1,5 +1,6 @@
 package princeYang.mxcc.backend;
 
+import princeYang.mxcc.Config;
 import princeYang.mxcc.errors.MxError;
 import princeYang.mxcc.ir.*;
 
@@ -88,6 +89,22 @@ public class NASMPrinter implements IRVisitor
         preg0 = IRNode.getPreg0();
         preg1 = IRNode.getPreg1();
         identMap.put(IRNode.getFunctionMap().get("main").getBlockEnter(), "main");
+
+        try
+        {
+            if (Config.hack)
+            {
+                BufferedReader bufferedReader = new BufferedReader(new FileReader("lib/hack.asm"));
+                String fileLine;
+                while ((fileLine = bufferedReader.readLine()) != null)
+                    out.println(fileLine);
+                System.exit(0);
+            }
+        }
+        catch (Throwable th)
+        {
+            throw new MxError("Error when putting buildin asm\n");
+        }
 
         out.println("\t\tglobal\tmain");
         out.println();

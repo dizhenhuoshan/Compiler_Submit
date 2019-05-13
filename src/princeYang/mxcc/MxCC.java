@@ -29,10 +29,7 @@ public class MxCC
         String inputPath;
         try
         {
-            boolean optim = true;
             CharStream input = CharStreams.fromStream(System.in);
-            if (input.toString().contains("class splay_tree"))
-                optim = false;
             MxLexer mxLexer = new MxLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(mxLexer);
             MxParser mxParser = new MxParser(tokens);
@@ -67,15 +64,7 @@ public class MxCC
 //            PrintStream nasmPrint = new PrintStream("test.asm");
 //            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
             NASMPrinter nasmPrinter = new NASMPrinter(System.out);
-            if (!optim)
-            {
-                BufferedReader bufferedReader = new BufferedReader(new FileReader("lib/optim.asm"));
-                String fileLine;
-                while ((fileLine = bufferedReader.readLine()) != null)
-                    System.out.println(fileLine);
-            }
-            else
-                nasmPrinter.visit(irRoot);
+            nasmPrinter.visit(irRoot);
             System.err.print("baka\n");
         }
         catch (Throwable th)
@@ -88,4 +77,3 @@ public class MxCC
         }
     }
 }
-
