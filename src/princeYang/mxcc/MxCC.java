@@ -18,9 +18,6 @@ import princeYang.mxcc.parser.MxParser;
 import princeYang.mxcc.scope.Scope;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class MxCC
 {
@@ -49,10 +46,10 @@ public class MxCC
             IRROOT irRoot = irBuilder.getIrRoot();
             NASMRegFormProcessor regFormProcessor = new NASMRegFormProcessor(irRoot);
             regFormProcessor.transRegToNASMForm();
-//            PrintStream irPrint = new PrintStream("test.ir");
-//            IRPrinter irPrinter = new IRPrinter(irPrint);
+            PrintStream irPrint = new PrintStream("test.ir");
+            IRPrinter irPrinter = new IRPrinter(irPrint);
 //            IRPrinter irPrinter = new IRPrinter(System.out);
-//            irPrinter.visit(irRoot);
+            irPrinter.visit(irRoot);
             GlobalVarProcessor globalVarProcessor = new GlobalVarProcessor(irRoot);
             globalVarProcessor.process();
 //            OnTheFlyAllocator onTheFlyAllocator = new OnTheFlyAllocator(irRoot);
@@ -61,9 +58,9 @@ public class MxCC
             graphAllocator.allocateReg();
             NASMFormProcessor nasmFormProcessor = new NASMFormProcessor(irRoot);
             nasmFormProcessor.processNASM();
-//            PrintStream nasmPrint = new PrintStream("test.asm");
-//            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
-            NASMPrinter nasmPrinter = new NASMPrinter(System.out);
+            PrintStream nasmPrint = new PrintStream("test.asm");
+            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
+//            NASMPrinter nasmPrinter = new NASMPrinter(System.out);
             nasmPrinter.visit(irRoot);
             System.err.print("baka\n");
         }

@@ -134,8 +134,6 @@ public class AstBuilder extends MxBaseVisitor<Node>
     {
         Location location = new Location(ctx);
         String identifier = ctx.Identifier().getText();
-        if (identifier.equals("splay_tree"))
-            Config.hack = true;
         List<VarDeclNode> varDecls = new ArrayList<VarDeclNode>();
         List<FuncDeclNode> funDecls = new ArrayList<FuncDeclNode>();
         DeclNode classState;
