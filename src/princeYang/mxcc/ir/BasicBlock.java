@@ -26,7 +26,6 @@ public class BasicBlock
         this.parentFunction = parentFunction;
         this.blockName = blockName;
         this.localBlockID = globalBlockID++;
-        parentFunction.getBasicBlocks().add(this);
     }
 
     public int getLocalBlockID()
@@ -167,6 +166,13 @@ public class BasicBlock
         }
         else
             throw new MxError("IR BasicBlock: jumpInst is invalid in deleteJumpInst!\n");
+    }
+
+    public void reset()
+    {
+        headInst = null;
+        tailInst = null;
+        containJump = false;
     }
 
     public void accept(IRVisitor visitor)

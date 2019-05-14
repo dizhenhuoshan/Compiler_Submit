@@ -9,7 +9,6 @@ public class IRFunction
 {
     private String funcName;
     private IRFuncType funcType;
-    private LinkedList<BasicBlock> basicBlocks = new LinkedList<BasicBlock>();
     private BasicBlock blockEnter;
     private BasicBlock blockLeave;
     private boolean hasRetValue = false, hasRecursiveCall = false, isInClass = false;
@@ -49,11 +48,6 @@ public class IRFunction
             funcName = IRBuilder.genClassFuncName(funcEntity.getClassIdent(), funcName);
             this.isInClass = true;
         }
-    }
-
-    public LinkedList<BasicBlock> getBasicBlocks()
-    {
-        return basicBlocks;
     }
 
     public List<StackSlot> getStackSlotList()

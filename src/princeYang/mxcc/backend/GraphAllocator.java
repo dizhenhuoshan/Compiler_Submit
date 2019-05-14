@@ -11,7 +11,7 @@ import static java.lang.Math.min;
 public class GraphAllocator
 {
     private IRROOT irRoot;
-    private LivelinessAnalyst livelinessAnalyst;
+    private LivenessAnalyst livenessAnalyst;
     private List<PhysicalReg> generalRegs = new ArrayList<PhysicalReg>();
     private PhysicalReg pReg0, pReg1;
     private int colorNum;
@@ -26,7 +26,7 @@ public class GraphAllocator
     public GraphAllocator(IRROOT irRoot)
     {
         this.irRoot = irRoot;
-        this.livelinessAnalyst = new LivelinessAnalyst(irRoot);
+        this.livenessAnalyst = new LivenessAnalyst(irRoot);
         this.generalRegs.addAll(NASMRegSet.generalRegs);
         // check whether r8/ r9 will be used
         int maxFuncArg = 0;
@@ -58,7 +58,7 @@ public class GraphAllocator
         colorNum = generalRegs.size();
     }
 
-    private void setFuncArgReg()
+    private void setFuncArgReg(IRFunction currentFunc)
     {
         IRInstruction headInst = currentFunc.getBlockEnter().getHeadInst();
 //             if args > 6, get them from stack
@@ -314,10 +314,11 @@ public class GraphAllocator
     public void allocateReg()
     {
         for (IRFunction function : irRoot.getFunctionMap().values())
+            setFuncArgReg(function);
+        livenessAnalyst.processLiveness();
+        for (IRFunction function : irRoot.getFunctionMap().values())
         {
             currentFunc = function;
-            setFuncArgReg();
-            livelinessAnalyst.anylyseLiveness(function);
             regGraphInfoMap.clear();
             nodeSet.clear();
             underflowRegNodes.clear();
