@@ -252,11 +252,13 @@ public class IRBuilder extends ScopeScanner
         if (node.getStepExpr() != null)
             stepBlock = new BasicBlock(currentFunc, "__loop__for_step");
         else stepBlock = stopBlock;
-        irRoot.getIRForMap().put(node, new IRFor(stopBlock, stepBlock, loopBodyBlock, loopAfterBlock));
+
         stopBlock.setForStateNode(node);
         stepBlock.setForStateNode(node);
         loopBodyBlock.setForStateNode(node);
         loopAfterBlock.setForStateNode(node);
+        irRoot.getIRForMap().put(node, new IRFor(stopBlock, stepBlock, loopBodyBlock, loopAfterBlock));
+
         // for multi level for, backup current loop info and enter next level.
         BasicBlock prevLoopStepBlock = currentLoopStepBlock, prevLoopAfterBlock = currentLoopAfterBlock;
         currentLoopStepBlock = stepBlock;
@@ -1085,7 +1087,6 @@ public class IRBuilder extends ScopeScanner
         IRValue lhsValue = exprNode.getLhs().getRegValue();
         IRValue rhsValue = exprNode.getRhs().getRegValue();
 
-        // TODO: could be optim
         int immLhs = 0, immRhs = 0;
         if (lhsValue instanceof Immediate)
             immLhs = ((Immediate) lhsValue).getValue();

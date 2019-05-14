@@ -4,6 +4,7 @@ import princeYang.mxcc.ast.ForStateNode;
 import princeYang.mxcc.errors.MxError;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class BasicBlock
@@ -11,8 +12,8 @@ public class BasicBlock
     private IRFunction parentFunction;
     private String blockName;
     private IRInstruction headInst = null, tailInst = null;
-    private Set<BasicBlock> prevBlocks = new HashSet<BasicBlock>();
-    private Set<BasicBlock> nextBlocks = new HashSet<BasicBlock>();
+    private Set<BasicBlock> prevBlocks = new LinkedHashSet<BasicBlock>();
+    private Set<BasicBlock> nextBlocks = new LinkedHashSet<BasicBlock>();
     private boolean containJump = false;
     private ForStateNode forStateNode;
 
@@ -119,16 +120,16 @@ public class BasicBlock
 
     public void addNextBlock(BasicBlock nextBlock)
     {
+        this.nextBlocks.add(nextBlock);
         if (nextBlock != null)
             nextBlock.getPrevBlocks().add(this);
-        this.nextBlocks.add(nextBlock);
     }
 
     public void deleteNextBlock(BasicBlock nextBlock)
     {
+        this.nextBlocks.remove(nextBlock);
         if (nextBlock != null)
             nextBlock.getPrevBlocks().remove(this);
-        this.nextBlocks.remove(nextBlock);
     }
 
     public boolean isContainJump()
