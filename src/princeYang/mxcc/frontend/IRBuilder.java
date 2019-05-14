@@ -22,6 +22,7 @@ public class IRBuilder extends ScopeScanner
     private IRFunction currentFunc;
     private String currentClass;
     private BasicBlock currentLoopStepBlock = null, currentLoopAfterBlock = null;
+    private boolean uselessVar = false;
 
     public IRBuilder(Scope globalScope)
     {
@@ -500,12 +501,13 @@ public class IRBuilder extends ScopeScanner
         boolean prevMemAccessing = memAccessing;
         this.memAccessing = false;
         node.getArrExpr().accept(this);
+        if (uselessVar)
+            return;
         node.getSubExpr().accept(this);
         this.memAccessing = prevMemAccessing;
 
         VirtualReg destReg = new VirtualReg(null);
         Immediate elemSize = new Immediate(node.getArrExpr().getType().getSize());
-        // TODO: MUL can be replaced with shift
         currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, node.getSubExpr().getRegValue(), IRBinaryOp.MUL, elemSize));
         currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, destReg, IRBinaryOp.ADD, node.getArrExpr().getRegValue()));
         if (memAccessing)
@@ -528,8 +530,15 @@ public class IRBuilder extends ScopeScanner
     {
         boolean memAccessingOp = checkMemAccessing(node.getLhs());
         this.memAccessing = memAccessingOp;
+        uselessVar = false;
         node.getLhs().accept(this);
         this.memAccessing = false;
+
+        if (uselessVar)
+        {
+            uselessVar = false;
+            return;
+        }
 
         if (node.getRhs().getType() instanceof BoolType && !(node.getRhs() instanceof ConstBoolNode))
         {
@@ -555,6 +564,11 @@ public class IRBuilder extends ScopeScanner
     public void visit(IdentExprNode node)
     {
         VarEntity varEntity = node.getVarEntity();
+        if ((varEntity.getType() instanceof ArrayType || varEntity.isInGlobal()) && varEntity.isUnUsed())
+        {
+            uselessVar = true;
+            return;
+        }
         if (varEntity.getIrReg() != null)
         {
             node.setRegValue(varEntity.getIrReg());
@@ -1223,7 +1237,7 @@ public class IRBuilder extends ScopeScanner
                 }
             }
 
-            if ((irBop == IRBinaryOp.MOD || irBop == IRBinaryOp.DIV) && immRhs > 2)
+            if ((irBop == IRBinaryOp.MOD || irBop == IRBinaryOp.DIV) && immRhs > 10)
             {
                 int cnt = 0;
                 long val = (long) immRhs;

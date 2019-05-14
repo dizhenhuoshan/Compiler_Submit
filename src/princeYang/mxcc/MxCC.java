@@ -41,6 +41,8 @@ public class MxCC
             insideClassPreUseScanner.visit(ast);
             ScopeBuilder scopeBuilder = new ScopeBuilder(globalScope);
             scopeBuilder.visit(ast);
+            StaticUseOptimizer staticUseOptimizer = new StaticUseOptimizer(globalScope);
+            staticUseOptimizer.visit(ast);
             IRBuilder irBuilder = new IRBuilder(globalScope);
             irBuilder.visit(ast);
             IRROOT irRoot = irBuilder.getIrRoot();
@@ -48,10 +50,10 @@ public class MxCC
             regFormProcessor.transRegToNASMForm();
             FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
             functionInlineOptimizer.processInline();
-//            PrintStream irPrint = new PrintStream("test.ir");
-//            IRPrinter irPrinter = new IRPrinter(irPrint);
+            PrintStream irPrint = new PrintStream("test.ir");
+            IRPrinter irPrinter = new IRPrinter(irPrint);
 //            IRPrinter irPrinter = new IRPrinter(System.out);
-//            irPrinter.visit(irRoot);
+            irPrinter.visit(irRoot);
             GlobalVarProcessor globalVarProcessor = new GlobalVarProcessor(irRoot);
             globalVarProcessor.process();
 //            OnTheFlyAllocator onTheFlyAllocator = new OnTheFlyAllocator(irRoot);
@@ -62,7 +64,7 @@ public class MxCC
             nasmFormProcessor.processNASM();
             FinalInstructionOptimizer finalInstructionOptimizer = new FinalInstructionOptimizer(irRoot);
             finalInstructionOptimizer.optimize();
-//            PrintStream nasmPrint = new PrintStream("test.asm");
+            PrintStream nasmPrint = new PrintStream("test.asm");
 //            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
             NASMPrinter nasmPrinter = new NASMPrinter(System.out);
             nasmPrinter.visit(irRoot);
