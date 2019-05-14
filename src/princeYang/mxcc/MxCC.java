@@ -50,10 +50,10 @@ public class MxCC
             regFormProcessor.transRegToNASMForm();
             FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
             functionInlineOptimizer.processInline();
-            PrintStream irPrint = new PrintStream("test.ir");
-            IRPrinter irPrinter = new IRPrinter(irPrint);
+//            PrintStream irPrint = new PrintStream("test.ir");
+//            IRPrinter irPrinter = new IRPrinter(irPrint);
 //            IRPrinter irPrinter = new IRPrinter(System.out);
-            irPrinter.visit(irRoot);
+//            irPrinter.visit(irRoot);
             GlobalVarProcessor globalVarProcessor = new GlobalVarProcessor(irRoot);
             globalVarProcessor.process();
 //            OnTheFlyAllocator onTheFlyAllocator = new OnTheFlyAllocator(irRoot);
