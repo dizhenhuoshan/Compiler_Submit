@@ -66,7 +66,7 @@ public class MxCC
 //            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
             NASMPrinter nasmPrinter = new NASMPrinter(System.out);
             nasmPrinter.visit(irRoot);
-            System.err.print("baka\n");
+            System.err.print("miss my girlfriend\n");
         }
         catch (Throwable th)
         {

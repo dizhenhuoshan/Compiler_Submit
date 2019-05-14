@@ -10,6 +10,7 @@ import princeYang.mxcc.scope.Scope;
 import princeYang.mxcc.scope.VarEntity;
 
 import java.util.*;
+import java.util.function.UnaryOperator;
 
 public class IRBuilder extends ScopeScanner
 {
@@ -1172,7 +1173,85 @@ public class IRBuilder extends ScopeScanner
             default:
                 throw new MxError("IR Builder: binaryArithProcessor Op is invalid\n");
         }
+
         VirtualReg destReg = new VirtualReg(null);
+        if (rhsValue instanceof Immediate)
+        {
+            if (immRhs == 1)
+            {
+                if (irBop == IRBinaryOp.MOD)
+                {
+                    currentBlock.appendInst(new Move(currentBlock, destReg, new Immediate(0)));
+                    exprNode.setRegValue(destReg);
+                    return;
+                }
+                if (irBop == IRBinaryOp.DIV || irBop == IRBinaryOp.MUL)
+                {
+                    currentBlock.appendInst(new Move(currentBlock, destReg, lhsValue));
+                    exprNode.setRegValue(destReg);
+                    return;
+                }
+            }
+
+            // for immRhs = 2^n
+            if (((immRhs & (immRhs - 1)) == 0))
+            {
+                int cnt = 0;
+                long val = (long) immRhs;
+                while (val > 1)
+                {
+                    cnt++;
+                    val = val >> 1;
+                }
+                if (irBop == IRBinaryOp.MOD)
+                {
+                    currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, lhsValue, IRBinaryOp.BITWISE_AND, new Immediate(immRhs - 1)));
+                    exprNode.setRegValue(destReg);
+                    return;
+                }
+                if (irBop == IRBinaryOp.MUL)
+                {
+                    currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, lhsValue, IRBinaryOp.SHL, new Immediate(cnt)));
+                    exprNode.setRegValue(destReg);
+                    return;
+                }
+                if (irBop == IRBinaryOp.DIV)
+                {
+                    currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, lhsValue, IRBinaryOp.SHR, new Immediate(cnt)));
+                    exprNode.setRegValue(destReg);
+                    return;
+                }
+            }
+
+            if ((irBop == IRBinaryOp.MOD || irBop == IRBinaryOp.DIV) && immRhs > 2)
+            {
+                int cnt = 0;
+                long val = (long) immRhs;
+                while (val % 2 == 0)
+                {
+                    cnt++;
+                    val = val / 2;
+                }
+
+                if (val != 1)
+                {
+                    long mod = 1L << 32;
+                    int o = (int) ((mod - 1) / val + 1);
+                    currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, lhsValue, IRBinaryOp.SHR, new Immediate(cnt)));
+                    currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, destReg, IRBinaryOp.MUL, new Immediate(o)));
+                    currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, destReg, IRBinaryOp.SHR, new Immediate(32)));
+                    if (irBop == IRBinaryOp.MOD)
+                    {
+                        currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, destReg, IRBinaryOp.MUL, rhsValue));
+                        currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, lhsValue, IRBinaryOp.SUB, destReg));
+                    }
+                    exprNode.setRegValue(destReg);
+                    return;
+                }
+            }
+
+        }
+
         currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, lhsValue, irBop, rhsValue));
         exprNode.setRegValue(destReg);
     }
