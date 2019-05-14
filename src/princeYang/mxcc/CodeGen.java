@@ -35,8 +35,6 @@ public class CodeGen
             insideClassPreUseScanner.visit(ast);
             ScopeBuilder scopeBuilder = new ScopeBuilder(globalScope);
             scopeBuilder.visit(ast);
-            StaticUseOptimizer staticUseOptimizer = new StaticUseOptimizer(globalScope);
-            staticUseOptimizer.visit(ast);
             IRBuilder irBuilder = new IRBuilder(globalScope);
             irBuilder.visit(ast);
             IRROOT irRoot = irBuilder.getIrRoot();
