@@ -1250,6 +1250,7 @@ public class IRBuilder extends ScopeScanner
 
                 if (val != 1)
                 {
+                    // may be wrong
                     long mod = 1L << 32;
                     int o = (int) ((mod - 1) / val + 1);
                     currentBlock.appendInst(new BinaryOperation(currentBlock, destReg, lhsValue, IRBinaryOp.SHR, new Immediate(cnt)));

@@ -1,25 +1,19 @@
 package princeYang.mxcc;
 
-import org.antlr.runtime.ANTLRFileStream;
-import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import princeYang.mxcc.ast.MxProgNode;
 import princeYang.mxcc.backend.*;
-import princeYang.mxcc.errors.MxError;
 import princeYang.mxcc.frontend.*;
 import princeYang.mxcc.ir.IRROOT;
 import princeYang.mxcc.parser.MxLexer;
 import princeYang.mxcc.parser.MxParser;
 import princeYang.mxcc.scope.Scope;
 
-import java.io.*;
-
-public class MxCC
+public class CodeGen
 {
     public static void main(String args[])
     {
@@ -48,24 +42,14 @@ public class MxCC
             IRROOT irRoot = irBuilder.getIrRoot();
             NASMRegFormProcessor regFormProcessor = new NASMRegFormProcessor(irRoot);
             regFormProcessor.transRegToNASMForm();
-            FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
-            functionInlineOptimizer.processInline();
-//            PrintStream irPrint = new PrintStream("test.ir");
-//            IRPrinter irPrinter = new IRPrinter(irPrint);
-//            IRPrinter irPrinter = new IRPrinter(System.out);
-//            irPrinter.visit(irRoot);
             GlobalVarProcessor globalVarProcessor = new GlobalVarProcessor(irRoot);
             globalVarProcessor.process();
-//            OnTheFlyAllocator onTheFlyAllocator = new OnTheFlyAllocator(irRoot);
-//            onTheFlyAllocator.allocateReg();
             GraphAllocator graphAllocator = new GraphAllocator(irRoot);
             graphAllocator.allocateReg();
             NASMFormProcessor nasmFormProcessor = new NASMFormProcessor(irRoot);
             nasmFormProcessor.processNASM();
             FinalInstructionOptimizer finalInstructionOptimizer = new FinalInstructionOptimizer(irRoot);
             finalInstructionOptimizer.optimize();
-//            PrintStream nasmPrint = new PrintStream("test.asm");
-//            NASMPrinter nasmPrinter = new NASMPrinter(nasmPrint);
             NASMPrinter nasmPrinter = new NASMPrinter(System.out);
             nasmPrinter.visit(irRoot);
             System.err.print("miss my girlfriend\n");
