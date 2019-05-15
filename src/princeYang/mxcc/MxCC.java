@@ -48,8 +48,8 @@ public class MxCC
             IRROOT irRoot = irBuilder.getIrRoot();
             NASMRegFormProcessor regFormProcessor = new NASMRegFormProcessor(irRoot);
             regFormProcessor.transRegToNASMForm();
-            FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
-            functionInlineOptimizer.processInline();
+//            FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
+//            functionInlineOptimizer.processInline();
 //            PrintStream irPrint = new PrintStream("test.ir");
 //            IRPrinter irPrinter = new IRPrinter(irPrint);
 //            IRPrinter irPrinter = new IRPrinter(System.out);

@@ -12,8 +12,8 @@ public class BasicBlock
     private IRFunction parentFunction;
     private String blockName;
     private IRInstruction headInst = null, tailInst = null;
-    private Set<BasicBlock> prevBlocks = new LinkedHashSet<BasicBlock>();
-    private Set<BasicBlock> nextBlocks = new LinkedHashSet<BasicBlock>();
+    private Set<BasicBlock> prevBlocks = new HashSet<BasicBlock>();
+    private Set<BasicBlock> nextBlocks = new HashSet<BasicBlock>();
     private boolean containJump = false;
     private ForStateNode forStateNode;
 

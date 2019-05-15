@@ -90,7 +90,7 @@ public class LivenessAnalyst
                 || (instruction instanceof HeapAllocate));
     }
 
-    boolean eliminateFlag;
+    private boolean eliminateFlag;
 
     public void processEliminate(IRFunction function)
     {

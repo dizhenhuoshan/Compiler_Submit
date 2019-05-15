@@ -4,18 +4,15 @@ import princeYang.mxcc.ast.ForStateNode;
 import princeYang.mxcc.ast.StateNode;
 import princeYang.mxcc.backend.NASMRegSet;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class IRROOT
 {
-    private Map<String, IRFunction> functionMap = new LinkedHashMap<String, IRFunction>();
-    private Map<String, IRFunction> buildInFuncMap = new LinkedHashMap<String, IRFunction>();
-    private Map<String, StaticStr> staticStrMap = new LinkedHashMap<String, StaticStr>();
+    private Map<String, IRFunction> functionMap = new HashMap<String, IRFunction>();
+    private Map<String, IRFunction> buildInFuncMap = new HashMap<String, IRFunction>();
+    private Map<String, StaticStr> staticStrMap = new HashMap<String, StaticStr>();
     private List<StaticData> staticDataList = new ArrayList<StaticData>();
-    private Map<ForStateNode, IRFor> IRForMap = new LinkedHashMap<ForStateNode, IRFor>();
+    private Map<ForStateNode, IRFor> IRForMap = new HashMap<ForStateNode, IRFor>();
     private boolean containShiftDiv = false;
     private PhysicalReg preg0, preg1;
 
