@@ -3,6 +3,7 @@ package princeYang.mxcc.backend;
 import princeYang.mxcc.Config;
 import princeYang.mxcc.ir.*;
 
+import java.io.PrintStream;
 import java.util.*;
 
 public class LivenessAnalyst
@@ -22,19 +23,24 @@ public class LivenessAnalyst
         boolean done = false;
         // init liveness set
         // cautious: reversed PRE order need.
-        for (BasicBlock basicBlock : function.getReversePreOrder())
+        List<BasicBlock> reversePreOrder = function.getReversePreOrder();
+        for (BasicBlock basicBlock : reversePreOrder)
         {
             for (IRInstruction instruction = basicBlock.getHeadInst(); instruction != null; instruction = instruction.getNext())
             {
-                instruction.liveIn.clear();
-                instruction.liveOut.clear();
+                if (instruction.liveIn == null)
+                    instruction.liveIn = new HashSet<VirtualReg>();
+                else instruction.liveIn.clear();
+                if (instruction.liveOut == null)
+                    instruction.liveOut = new HashSet<VirtualReg>();
+                else instruction.liveOut.clear();
             }
         }
 
         while (!done)
         {
             done = true;
-            for (BasicBlock basicBlock : function.getReversePreOrder())
+            for (BasicBlock basicBlock : reversePreOrder)
             {
                 for (IRInstruction instruction = basicBlock.getTailInst(); instruction != null; instruction = instruction.getPrev())
                 {
@@ -95,7 +101,8 @@ public class LivenessAnalyst
 
     public void processEliminate(IRFunction function)
     {
-        for (BasicBlock basicBlock : function.getReversePreOrder())
+        List<BasicBlock> reversePreOrder = function.getReversePreOrder();
+        for (BasicBlock basicBlock : reversePreOrder)
         {
             IRInstruction prevInst;
             for (IRInstruction instruction = basicBlock.getTailInst(); instruction != null; instruction = prevInst)
@@ -127,9 +134,9 @@ public class LivenessAnalyst
                     forBlockList.add(irFor.loopAfterBlock);
                     IRInstruction afterForHeadInst = irFor.loopAfterBlock.getHeadInst();
 
-                    for (BasicBlock basicBlock : forBlockList)
+                    for (int i = 0; i < 3; i++)
                     {
-                        for (IRInstruction instruction = basicBlock.getHeadInst(); instruction != null; instruction = instruction.getNext())
+                        for (IRInstruction instruction = forBlockList.get(i).getHeadInst(); instruction != null; instruction = instruction.getNext())
                         {
                             if (instruction instanceof FuncCall)
                             {
@@ -142,14 +149,14 @@ public class LivenessAnalyst
                                     outAccessFlag = true;
                                 continue;
                             }
-                            if (instruction instanceof Store || instruction instanceof Push || instruction instanceof Return)
+                            if (instruction instanceof Store)
                             {
                                 outAccessFlag = true;
                                 continue;
                             }
                             if (instruction instanceof Jump)
                             {
-                                if (!forBlockList.contains(((Jump) instruction).getTargetBlock()));
+                                if (!forBlockList.contains(((Jump) instruction).getTargetBlock()))
                                     outAccessFlag = true;
                                 continue;
                             }
@@ -157,6 +164,11 @@ public class LivenessAnalyst
                             {
                                 if (!forBlockList.contains(((Branch) instruction).getThenBlock()) || !forBlockList.contains(((Branch) instruction).getElseBlock()))
                                     outAccessFlag = true;
+                                continue;
+                            }
+                            if (instruction instanceof Push || instruction instanceof Return)
+                            {
+                                outAccessFlag = true;
                                 continue;
                             }
                         }
@@ -192,7 +204,7 @@ public class LivenessAnalyst
         {
             if (basicBlock.getHeadInst() == basicBlock.getTailInst())
             {
-                IRInstruction instruction = basicBlock.getTailInst();
+                IRInstruction instruction = basicBlock.getHeadInst();
                 if (instruction instanceof Jump)
                     jumpTargetReplaceMap.put(basicBlock, ((Jump) instruction).getTargetBlock());
             }
@@ -205,7 +217,7 @@ public class LivenessAnalyst
                 branchInst.setThenBlock(replaceJumpTarget(branchInst.getThenBlock()));
                 branchInst.setElseBlock(replaceJumpTarget(branchInst.getElseBlock()));
                 if (branchInst.getThenBlock() == branchInst.getElseBlock())
-                    branchInst.replace(new Jump(basicBlock, branchInst.getElseBlock()));
+                    branchInst.replace(new Jump(basicBlock, branchInst.getThenBlock()));
             }
             else if (basicBlock.getTailInst() instanceof Jump)
             {

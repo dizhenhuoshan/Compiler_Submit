@@ -93,6 +93,7 @@ public class FunctionInlineOptimizer
         IRFunction calleeFunc = functionBackupMap.getOrDefault(funcCall.getFunction(), funcCall.getFunction());
         BasicBlock oldBlockLeave = calleeFunc.getBlockLeave();
         BasicBlock newBlockLeave = new BasicBlock(callerFunc, oldBlockLeave.getBlockName());
+        List<BasicBlock> calleeReversePostOrder = calleeFunc.getReversePostOrder();
 
         renameMap.put(oldBlockLeave, newBlockLeave);
         renameMap.put(calleeFunc.getBlockEnter(), funcCall.getFatherBlock());
@@ -100,8 +101,7 @@ public class FunctionInlineOptimizer
             callerFunc.setBlockLeave(newBlockLeave);
 
         // move inst after func call to new block
-        Map<Object, Object> callBlockRenameMap = new HashMap<Object, Object>();
-        callBlockRenameMap.put(funcCall.getFatherBlock(), newBlockLeave);
+        Map<Object, Object> callBlockRenameMap = Collections.singletonMap(funcCall.getFatherBlock(), newBlockLeave);
         for (IRInstruction instruction = funcCall.getNext(); instruction != null; instruction = instruction.getNext())
         {
             if (instruction instanceof BranchBaseInst)
@@ -123,22 +123,22 @@ public class FunctionInlineOptimizer
 
         // process callee function
         IRInstruction newBlockLeaveHeadInst = newBlockLeave.getHeadInst();
-        for (BasicBlock basicBlock : calleeFunc.getReversePostOrder())
+        for (BasicBlock basicBlock : calleeReversePostOrder)
         {
             if (!renameMap.containsKey(basicBlock))
                 renameMap.put(basicBlock, new BasicBlock(callerFunc, basicBlock.getBlockName()));
         }
-        for (BasicBlock oldBlock : calleeFunc.getReversePostOrder())
+        for (BasicBlock oldBlock : calleeReversePostOrder)
         {
             BasicBlock newBlock = (BasicBlock) renameMap.get(oldBlock);
             // process for() in old block
             if (oldBlock.getForStateNode() != null)
             {
                 IRFor irFor = irRoot.getIRForMap().get(oldBlock.getForStateNode());
-                if (irFor.stepBlock == oldBlock)
-                    irFor.stepBlock = newBlock;
                 if (irFor.stopBlock == oldBlock)
                     irFor.stopBlock = newBlock;
+                if (irFor.stepBlock == oldBlock)
+                    irFor.stepBlock = newBlock;
                 if (irFor.loopBodyBlock == oldBlock)
                     irFor.loopBodyBlock = newBlock;
                 if (irFor.loopAfterBlock == oldBlock)
@@ -186,10 +186,7 @@ public class FunctionInlineOptimizer
         Set<IRFunction> recursiveCalleeSet = new HashSet<IRFunction>();
         boolean flag = true;
         for (IRFunction irFunction : irRoot.getFunctionMap().values())
-        {
-            irFunction.updateCalleeSet();
             irFunction.recurCalleeSet.clear();
-        }
         while (flag)
         {
             flag = false;
@@ -215,6 +212,7 @@ public class FunctionInlineOptimizer
 
         // process nonRecursive functions
         List<String> nonCalledFuncs = new ArrayList<String>();
+        List<BasicBlock> reversePostOrder = new ArrayList<BasicBlock>();
         boolean changeFlag = true;
         boolean nowChanged;
         while (changeFlag)
@@ -225,7 +223,9 @@ public class FunctionInlineOptimizer
             {
                 InlineInfo funcInlineInfo = functionInlineInfoMap.get(function);
                 nowChanged = false;
-                for (BasicBlock basicBlock : function.getReversePostOrder())
+                reversePostOrder.clear();
+                reversePostOrder.addAll(function.getReversePostOrder());
+                for (BasicBlock basicBlock : reversePostOrder)
                 {
                     IRInstruction nextInst;
                     for(IRInstruction instruction = basicBlock.getHeadInst(); instruction != null; instruction = nextInst)
@@ -259,6 +259,8 @@ public class FunctionInlineOptimizer
             for (String nonCalledFunc : nonCalledFuncs)
                 irRoot.getFunctionMap().remove(nonCalledFunc);
         }
+        for (IRFunction irFunction : irRoot.getFunctionMap().values())
+            irFunction.updateCalleeSet();
         updateRecursiveCalleeSet();
 
         // process recursive inline
@@ -278,6 +280,8 @@ public class FunctionInlineOptimizer
             {
                 InlineInfo funcInlineInfo = functionInlineInfoMap.get(function);
                 nowChanged = false;
+                reversePostOrder.clear();
+                reversePostOrder.addAll(function.getReversePostOrder());
                 for (BasicBlock basicBlock : function.getReversePostOrder())
                 {
                     IRInstruction nextInst;
@@ -305,6 +309,8 @@ public class FunctionInlineOptimizer
                     function.postOrderProcessor();
             }
         }
+        for (IRFunction irFunction : irRoot.getFunctionMap().values())
+            irFunction.updateCalleeSet();
         updateRecursiveCalleeSet();
     }
 }

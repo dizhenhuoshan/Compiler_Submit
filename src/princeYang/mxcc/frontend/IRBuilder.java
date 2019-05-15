@@ -67,6 +67,8 @@ public class IRBuilder extends ScopeScanner
             else if (!(declNode instanceof VarDeclNode))
                 throw new MxError("IRBuilder: declNode Type is invalid in visiting MxProgNode!\n");
         }
+        for (IRFunction irFunction : irRoot.getFunctionMap().values())
+            irFunction.updateCalleeSet();
         updateRecursiveCalleeSet();
     }
 
@@ -271,10 +273,10 @@ public class IRBuilder extends ScopeScanner
         if (node.getStopExpr() != null)
         {
             currentBlock = stopBlock;
-            // condition false -> escape loop
-            node.getStopExpr().setBoolFalseBlock(loopAfterBlock);
             // condition true -> continue loop
             node.getStopExpr().setBoolTrueBlock(loopBodyBlock);
+            // condition false -> escape loop
+            node.getStopExpr().setBoolFalseBlock(loopAfterBlock);
             node.getStopExpr().accept(this);
             // for const bool state, simply use if branch escape the loop
             if (node.getStopExpr() instanceof ConstBoolNode)
@@ -322,6 +324,10 @@ public class IRBuilder extends ScopeScanner
             // true -> then  false -> escape if
             node.getConditionExpr().setBoolTrueBlock(thenBlock);
             node.getConditionExpr().setBoolFalseBlock(afterBlock);
+            node.getConditionExpr().accept(this);
+            if (node.getConditionExpr() instanceof ConstBoolNode)
+                currentBlock.setJumpInst(new Branch(currentBlock, node.getConditionExpr().getRegValue(),
+                        node.getConditionExpr().getBoolTrueBlock(), node.getConditionExpr().getBoolFalseBlock()));
         }
         else
         {
@@ -329,11 +335,11 @@ public class IRBuilder extends ScopeScanner
             elseBlock = new BasicBlock(currentFunc, "__branch__if_else");
             node.getConditionExpr().setBoolTrueBlock(thenBlock);
             node.getConditionExpr().setBoolFalseBlock(elseBlock);
+            node.getConditionExpr().accept(this);
+            if (node.getConditionExpr() instanceof ConstBoolNode)
+                currentBlock.setJumpInst(new Branch(currentBlock, node.getConditionExpr().getRegValue(),
+                        node.getConditionExpr().getBoolTrueBlock(), node.getConditionExpr().getBoolFalseBlock()));
         }
-        node.getConditionExpr().accept(this);
-        if (node.getConditionExpr() instanceof ConstBoolNode)
-            currentBlock.setJumpInst(new Branch(currentBlock, node.getConditionExpr().getRegValue(),
-                    node.getConditionExpr().getBoolTrueBlock(), node.getConditionExpr().getBoolFalseBlock()));
 
         currentBlock = thenBlock;
         node.getThenState().accept(this);
@@ -766,10 +772,7 @@ public class IRBuilder extends ScopeScanner
         Set<IRFunction> recursiveCalleeSet = new HashSet<IRFunction>();
         boolean flag = true;
         for (IRFunction irFunction : irRoot.getFunctionMap().values())
-        {
-            irFunction.updateCalleeSet();
             irFunction.recurCalleeSet.clear();
-        }
         while (flag)
         {
             flag = false;
