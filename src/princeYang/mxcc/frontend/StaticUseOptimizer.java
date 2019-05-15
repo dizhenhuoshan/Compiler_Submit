@@ -43,11 +43,9 @@ public class StaticUseOptimizer extends ScopeScanner
         }
         for (VarEntity varEntity : unUsedVarSet)
         {
-            System.err.println("unUsedStatic? " + varEntity.getIdent());
             if (!usedVarSet.contains(varEntity))
             {
                 varEntity.setUnUsed(true);
-                System.err.println("unUsedStatic! " + varEntity.getIdent());
             }
         }
     }

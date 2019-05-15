@@ -30,10 +30,12 @@ public class LivenessAnalyst
             {
                 if (instruction.liveIn == null)
                     instruction.liveIn = new HashSet<VirtualReg>();
-                else instruction.liveIn.clear();
+                else
+                    instruction.liveIn.clear();
                 if (instruction.liveOut == null)
                     instruction.liveOut = new HashSet<VirtualReg>();
-                else instruction.liveOut.clear();
+                else
+                    instruction.liveOut.clear();
             }
         }
 
@@ -227,11 +229,6 @@ public class LivenessAnalyst
         }
     }
 
-    public void processLivenessWithoutEliminate()
-    {
-        for (IRFunction function : irRoot.getFunctionMap().values())
-            analyseLiveness(function);
-    }
 
     public void processLivenessWithEliminate()
     {

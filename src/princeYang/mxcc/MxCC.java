@@ -48,8 +48,8 @@ public class MxCC
             irBuilder.visit(ast);
             IRROOT irRoot = irBuilder.getIrRoot();
 
-//            PrintStream irPrint = new PrintStream("test.ir");
-//            IRPrinter irPrinter = new IRPrinter(irPrint);
+            PrintStream irPrint = new PrintStream("test.ir");
+            IRPrinter irPrinter = new IRPrinter(irPrint);
 
             NASMRegFormProcessor regFormProcessor = new NASMRegFormProcessor(irRoot);
             regFormProcessor.transRegToNASMForm();
@@ -60,7 +60,7 @@ public class MxCC
             FuncParaForcer funcParaForcer = new FuncParaForcer(irRoot);
             funcParaForcer.processForcePara();
 //            IRPrinter irPrinter = new IRPrinter(System.out);
-//            irPrinter.visit(irRoot);
+            irPrinter.visit(irRoot);
             LivenessAnalyst livenessAnalyst = new LivenessAnalyst(irRoot);
             livenessAnalyst.processLivenessWithEliminate();
             GraphAllocator graphAllocator = new GraphAllocator(irRoot);
