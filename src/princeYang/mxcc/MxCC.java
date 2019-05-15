@@ -34,6 +34,7 @@ public class MxCC
             ParseTree progTree = mxParser.mxprogram();
             AstBuilder astBuilder = new AstBuilder();
             MxProgNode ast = (MxProgNode) astBuilder.visit(progTree);
+
             Scope globalScope = new Scope();
             GlobalPreUseScanner globalPreUseScanner = new GlobalPreUseScanner(globalScope);
             globalPreUseScanner.visit(ast);
@@ -46,18 +47,22 @@ public class MxCC
             IRBuilder irBuilder = new IRBuilder(globalScope);
             irBuilder.visit(ast);
             IRROOT irRoot = irBuilder.getIrRoot();
-            NASMRegFormProcessor regFormProcessor = new NASMRegFormProcessor(irRoot);
-            regFormProcessor.transRegToNASMForm();
-//            FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
-//            functionInlineOptimizer.processInline();
-//            PrintStream irPrint = new PrintStream("test.ir");
+
+            //            PrintStream irPrint = new PrintStream("test.ir");
 //            IRPrinter irPrinter = new IRPrinter(irPrint);
 //            IRPrinter irPrinter = new IRPrinter(System.out);
 //            irPrinter.visit(irRoot);
+
+            NASMRegFormProcessor regFormProcessor = new NASMRegFormProcessor(irRoot);
+            regFormProcessor.transRegToNASMForm();
             GlobalVarProcessor globalVarProcessor = new GlobalVarProcessor(irRoot);
             globalVarProcessor.process();
-//            OnTheFlyAllocator onTheFlyAllocator = new OnTheFlyAllocator(irRoot);
-//            onTheFlyAllocator.allocateReg();
+            FuncParaForcer funcParaForcer = new FuncParaForcer(irRoot);
+            funcParaForcer.processForcePara();
+            LivenessAnalyst livenessAnalyst = new LivenessAnalyst(irRoot);
+            FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
+            functionInlineOptimizer.processInline();
+            livenessAnalyst.processLivenessWithEliminate();
             GraphAllocator graphAllocator = new GraphAllocator(irRoot);
             graphAllocator.allocateReg();
             NASMFormProcessor nasmFormProcessor = new NASMFormProcessor(irRoot);

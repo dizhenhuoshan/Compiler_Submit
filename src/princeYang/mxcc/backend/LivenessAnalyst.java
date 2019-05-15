@@ -1,5 +1,6 @@
 package princeYang.mxcc.backend;
 
+import princeYang.mxcc.Config;
 import princeYang.mxcc.ir.*;
 
 import java.util.*;
@@ -214,7 +215,13 @@ public class LivenessAnalyst
         }
     }
 
-    public void processLiveness()
+    public void processLivenessWithoutEliminate()
+    {
+        for (IRFunction function : irRoot.getFunctionMap().values())
+            analyseLiveness(function);
+    }
+
+    public void processLivenessWithEliminate()
     {
         for (IRFunction function : irRoot.getFunctionMap().values())
             analyseLiveness(function);

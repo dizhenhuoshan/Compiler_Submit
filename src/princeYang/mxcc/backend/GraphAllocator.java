@@ -15,7 +15,6 @@ public class GraphAllocator
     private List<PhysicalReg> generalRegs = new ArrayList<PhysicalReg>();
     private PhysicalReg pReg0, pReg1;
     private int colorNum;
-    private IRFunction currentFunc;
     public Stack<VirtualReg> regStack = new Stack<VirtualReg>();
     public Map<VirtualReg, GraphRegInfo> regGraphInfoMap = new HashMap<VirtualReg, GraphRegInfo>();
     public Map<IRReg, IRReg> renameMap = new HashMap<IRReg, IRReg>();
@@ -58,32 +57,6 @@ public class GraphAllocator
         colorNum = generalRegs.size();
     }
 
-    private void setFuncArgReg(IRFunction currentFunc)
-    {
-        IRInstruction headInst = currentFunc.getBlockEnter().getHeadInst();
-//             if args > 6, get them from stack
-        for (int i = 6; i < currentFunc.getParavRegList().size(); i++)
-        {
-            VirtualReg virtualArgReg = currentFunc.getParavRegList().get(i);
-            StackSlot paraSlot = new StackSlot(String.format("arg%d", i), currentFunc, true);
-            currentFunc.getParaSlotMap().put(virtualArgReg, paraSlot);
-            headInst.prepend(new Load(currentFunc.getBlockEnter(), virtualArgReg, paraSlot, Config.regSize, 0));
-        }
-        // for args less than 6, get them from the register
-        if (currentFunc.getParavRegList().size() >= 1)
-            currentFunc.getParavRegList().get(0).setEnforcedReg(NASMRegSet.rdi);
-        if (currentFunc.getParavRegList().size() >= 2)
-            currentFunc.getParavRegList().get(1).setEnforcedReg(NASMRegSet.rsi);
-        if (currentFunc.getParavRegList().size() >= 3)
-            currentFunc.getParavRegList().get(2).setEnforcedReg(NASMRegSet.rdx);
-        if (currentFunc.getParavRegList().size() >= 4)
-            currentFunc.getParavRegList().get(3).setEnforcedReg(NASMRegSet.rcx);
-        if (currentFunc.getParavRegList().size() >= 5)
-            currentFunc.getParavRegList().get(4).setEnforcedReg(NASMRegSet.r8);
-        if (currentFunc.getParavRegList().size() >= 6)
-            currentFunc.getParavRegList().get(5).setEnforcedReg(NASMRegSet.r9);
-    }
-
     private GraphRegInfo getGraphRegInfo(VirtualReg vReg)
     {
         GraphRegInfo graphRegInfo = regGraphInfoMap.get(vReg);
@@ -101,7 +74,7 @@ public class GraphAllocator
         getGraphRegInfo(des).neighbors.add(arr);
     }
 
-    private void buildGraph()
+    private void buildGraph(IRFunction currentFunc)
     {
         for (VirtualReg paraReg : currentFunc.getParavRegList())
             getGraphRegInfo(paraReg);
@@ -160,7 +133,7 @@ public class GraphAllocator
         regStack.push(vReg);
     }
 
-    private void colorize()
+    private void colorize(IRFunction currentFunc)
     {
         nodeSet.addAll(regGraphInfoMap.keySet());
         for (VirtualReg vReg : nodeSet)
@@ -235,7 +208,7 @@ public class GraphAllocator
         }
     }
 
-    private void rewriteInstruction()
+    private void rewriteInstruction(IRFunction currentFunc)
     {
         for (BasicBlock basicBlock : currentFunc.getReversePreOrder())
         {
@@ -314,18 +287,14 @@ public class GraphAllocator
     public void allocateReg()
     {
         for (IRFunction function : irRoot.getFunctionMap().values())
-            setFuncArgReg(function);
-        livenessAnalyst.processLiveness();
-        for (IRFunction function : irRoot.getFunctionMap().values())
         {
-            currentFunc = function;
             regGraphInfoMap.clear();
             nodeSet.clear();
             underflowRegNodes.clear();
             regStack.clear();
-            buildGraph();
-            colorize();
-            rewriteInstruction();
+            buildGraph(function);
+            colorize(function);
+            rewriteInstruction(function);
         }
     }
 
