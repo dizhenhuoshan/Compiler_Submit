@@ -57,11 +57,11 @@ public class MxCC
             regFormProcessor.transRegToNASMForm();
             GlobalVarProcessor globalVarProcessor = new GlobalVarProcessor(irRoot);
             globalVarProcessor.process();
+            FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
+            functionInlineOptimizer.processInline();
             FuncParaForcer funcParaForcer = new FuncParaForcer(irRoot);
             funcParaForcer.processForcePara();
             LivenessAnalyst livenessAnalyst = new LivenessAnalyst(irRoot);
-            FunctionInlineOptimizer functionInlineOptimizer = new FunctionInlineOptimizer(irRoot);
-            functionInlineOptimizer.processInline();
             livenessAnalyst.processLivenessWithEliminate();
             GraphAllocator graphAllocator = new GraphAllocator(irRoot);
             graphAllocator.allocateReg();
