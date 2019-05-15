@@ -145,9 +145,11 @@ public class GraphAllocator
     private void removeRegNode(VirtualReg vReg)
     {
         GraphRegInfo regInfo = regGraphInfoMap.get(vReg);
+        regInfo.removed = true;
+        nodeSet.remove(vReg);
         for (VirtualReg neighbor : regInfo.neighbors)
         {
-            GraphRegInfo neighborInfo = regGraphInfoMap.get(vReg);
+            GraphRegInfo neighborInfo = regGraphInfoMap.get(neighbor);
             if (!neighborInfo.removed)
             {
                 neighborInfo.degree--;
@@ -155,9 +157,7 @@ public class GraphAllocator
                     underflowRegNodes.add(neighbor);
             }
         }
-        regInfo.removed = true;
         regStack.push(vReg);
-        nodeSet.remove(vReg);
     }
 
     private void colorize()
@@ -188,6 +188,7 @@ public class GraphAllocator
         {
             VirtualReg vReg = regStack.pop();
             GraphRegInfo regInfo = regGraphInfoMap.get(vReg);
+            regInfo.removed = false;
             usedColorSet.clear();
             for (VirtualReg neighbor : regInfo.neighbors)
             {
@@ -231,7 +232,6 @@ public class GraphAllocator
                     }
                 }
             }
-            regInfo.removed = false;
         }
     }
 
